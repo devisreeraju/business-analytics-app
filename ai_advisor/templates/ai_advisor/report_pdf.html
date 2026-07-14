@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AI Business Advisor Report - {{ dataset.name }}</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.8in;
+            @bottom-right {
+                content: "Page " counter(page);
+                font-family: 'Helvetica', sans-serif;
+                font-size: 8pt;
+                color: #64748B;
+            }
+            @bottom-left {
+                content: "AI Business Analytics Copilot - Confidential Report";
+                font-family: 'Helvetica', sans-serif;
+                font-size: 8pt;
+                color: #64748B;
+            }
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #0F172A;
+            font-size: 9.5pt;
+            line-height: 1.6;
+        }
+        .header-table {
+            width: 100%;
+            border-bottom: 2px solid #1E3A8A;
+            padding-bottom: 12px;
+            margin-bottom: 25px;
+        }
+        .header-title {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #1E3A8A;
+            font-family: 'Helvetica-Bold', sans-serif;
+        }
+        .header-subtitle {
+            font-size: 9pt;
+            color: #64748B;
+            text-align: right;
+            vertical-align: bottom;
+        }
+        .meta-table {
+            width: 100%;
+            margin-bottom: 25px;
+            background-color: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            padding: 12px;
+        }
+        .meta-label {
+            font-weight: bold;
+            font-family: 'Helvetica-Bold', sans-serif;
+            color: #475569;
+            width: 30%;
+            font-size: 9pt;
+        }
+        .meta-value {
+            color: #0F172A;
+            font-size: 9pt;
+        }
+        h2 {
+            font-size: 12.5pt;
+            color: #7C3AED;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 4px;
+            margin-top: 22px;
+            margin-bottom: 8px;
+            font-family: 'Helvetica-Bold', sans-serif;
+        }
+        p {
+            margin-bottom: 10px;
+            text-align: justify;
+            color: #334155;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Header -->
+    <table class="header-table">
+        <tr>
+            <td class="header-title">AI Business Advisor Report</td>
+            <td class="header-subtitle">Date: {{ export_date }}</td>
+        </tr>
+    </table>
+    
+    <!-- Audit Meta Details -->
+    <table class="meta-table">
+        <tr>
+            <td class="meta-label">Dataset Analyzed:</td>
+            <td class="meta-value">{{ dataset.name }}</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Dimensions (Rows x Cols):</td>
+            <td class="meta-value">{{ dataset.row_count }} Rows by {{ dataset.column_count }} Columns</td>
+        </tr>
+        <tr>
+            <td class="meta-label">Data Health Integrity:</td>
+            <td class="meta-value">
+                Missing Values: {{ dataset.missing_values_count }} cell(s) | Duplicate Rows: {{ dataset.duplicate_count }}
+            </td>
+        </tr>
+        <tr>
+            <td class="meta-label">Generated For:</td>
+            <td class="meta-value">{{ user.first_name|default:user.username }} ({{ user.email|default:"User Account" }})</td>
+        </tr>
+    </table>
+
+    <!-- Sections -->
+    <h2>1. Executive Summary</h2>
+    <p>{{ report.executive_summary|linebreaksbr }}</p>
+
+    <h2>2. Business Highlights</h2>
+    <p>{{ report.business_highlights|linebreaksbr }}</p>
+
+    <div class="page-break"></div>
+
+    <h2>3. Risks & Warnings</h2>
+    <p>{{ report.risks|linebreaksbr }}</p>
+
+    <h2>4. Opportunities</h2>
+    <p>{{ report.opportunities|linebreaksbr }}</p>
+
+    <h2>5. Actionable Recommendations</h2>
+    <p>{{ report.recommendations|linebreaksbr }}</p>
+
+    <h2>6. Final Conclusion</h2>
+    <p>{{ report.conclusion|linebreaksbr }}</p>
+</body>
+</html>

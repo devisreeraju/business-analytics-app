@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Export Module - AI Business Analytics Copilot{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-2">Export Center</h1>
+            <p class="text-muted-custom">Consolidate and download your analytics reports, KPI states, and parsed datasets.</p>
+        </div>
+    </div>
+
+    {% if not active_dataset %}
+        <div class="row">
+            <div class="col-12">
+                <div class="card-premium py-5 text-center shadow-sm">
+                    <i class="bi bi-download text-muted display-4 mb-3 d-block"></i>
+                    <h4 class="mb-2">No Active Dataset Loaded</h4>
+                    <p class="text-muted-custom mb-4 max-w-500 mx-auto">
+                        Please upload and activate a dataset before executing file exports.
+                    </p>
+                    <a href="{% url 'datasets:upload' %}" class="btn btn-premium btn-premium-primary">
+                        <i class="bi bi-cloud-arrow-up-fill"></i> Upload Dataset
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row g-4">
+            <!-- 1. Export Dashboard as PDF -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card-premium h-100 d-flex flex-column shadow-sm card-premium-hover">
+                    <div class="rounded-3 bg-primary bg-opacity-10 text-primary p-3 d-inline-block mb-3 align-self-start">
+                        <i class="bi bi-file-earmark-pdf-fill fs-3"></i>
+                    </div>
+                    <h5 class="font-weight-bold mb-2">Export Dashboard PDF</h5>
+                    <p class="text-muted-custom small flex-grow-1">
+                        Captures your active dashboard workspace—including live KPI cards, filters, and interactive Plotly charts—and downloads it as a high-fidelity PDF.
+                    </p>
+                    <a href="{% url 'dashboard:index' %}?print=true" class="btn btn-premium btn-premium-primary w-100 justify-content-center mt-3">
+                        <i class="bi bi-camera-fill"></i> Capture & Download PDF
+                    </a>
+                </div>
+            </div>
+
+            <!-- 2. Export Raw Dataset -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card-premium h-100 d-flex flex-column shadow-sm card-premium-hover">
+                    <div class="rounded-3 bg-success bg-opacity-10 text-success p-3 d-inline-block mb-3 align-self-start">
+                        <i class="bi bi-file-earmark-spreadsheet-fill fs-3"></i>
+                    </div>
+                    <h5 class="font-weight-bold mb-2">Export Raw Dataset</h5>
+                    <p class="text-muted-custom small flex-grow-1">
+                        Download a copy of your active parsed dataset directly in either standard CSV format or as a Microsoft Excel sheet.
+                    </p>
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="{% url 'export:dataset_csv' %}" class="btn btn-premium btn-premium-outline flex-grow-1 justify-content-center">
+                            Download CSV
+                        </a>
+                        <a href="{% url 'export:dataset_excel' %}" class="btn btn-premium btn-premium-outline flex-grow-1 justify-content-center">
+                            Download Excel
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Export Complete Report Bundle -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card-premium h-100 d-flex flex-column shadow-sm card-premium-hover">
+                    <div class="rounded-3 bg-secondary bg-opacity-10 text-secondary p-3 d-inline-block mb-3 align-self-start">
+                        <i class="bi bi-archive-fill fs-3"></i>
+                    </div>
+                    <h5 class="font-weight-bold mb-2">Export Complete Bundle (ZIP)</h5>
+                    <p class="text-muted-custom small flex-grow-1">
+                        Compiles a single ZIP file containing the original dataset sheet, the AI Business Advisor report PDF, and the dashboard summary report PDF.
+                    </p>
+                    <a href="{% url 'export:complete_zip' %}" class="btn btn-premium btn-premium-secondary w-100 justify-content-center mt-3" onclick="showLoading('Compiling report bundle ZIP...')">
+                        <i class="bi bi-file-zip-fill"></i> Download ZIP Bundle
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+{% load dataset_tags %}
+
+{% block title %}Dashboard - AI Business Analytics Copilot{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    {% if not active_dataset %}
+        <!-- ONBOARDING WELCOME SCREEN -->
+        <div class="row min-vh-75 align-items-center">
+            <div class="col-lg-8 mx-auto text-center py-5">
+                <div class="auth-logo mb-4 bg-gradient-primary rounded-4 d-inline-flex align-items-center justify-content-center" style="width: 72px; height: 72px; font-size: 2.2rem; box-shadow: 0 10px 25px rgba(30, 58, 138, 0.3);">
+                    <i class="bi bi-cpu-fill text-white"></i>
+                </div>
+                <h1 class="display-5 font-weight-bold mb-3">Welcome to your AI Business Analytics Copilot</h1>
+                <p class="text-muted-custom fs-5 mb-5 max-w-600 mx-auto">
+                    An intelligent BI dashboard that automatically parses your datasets, builds custom chart metrics, and generates strategic executive recommendations using Mistral AI.
+                </p>
+                
+                <div class="row g-4 text-start mb-5 max-w-800 mx-auto">
+                    <div class="col-md-4">
+                        <div class="card-premium h-100 card-premium-hover">
+                            <div class="rounded-3 bg-primary bg-opacity-10 text-primary p-2 d-inline-block mb-3">
+                                <i class="bi bi-cloud-arrow-up fs-4"></i>
+                            </div>
+                            <h6 class="font-weight-bold mb-2">1. Upload Data</h6>
+                            <p class="text-muted-custom small m-0">Upload Excel or CSV sheets. We extract schema rows, types, and quality reports.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card-premium h-100 card-premium-hover">
+                            <div class="rounded-3 bg-secondary bg-opacity-10 text-secondary p-2 d-inline-block mb-3">
+                                <i class="bi bi-bar-chart-line fs-4"></i>
+                            </div>
+                            <h6 class="font-weight-bold mb-2">2. Explore Analytics</h6>
+                            <p class="text-muted-custom small m-0">Slice, filter, and change dimensions dynamically with Plotly visualization canvas.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card-premium h-100 card-premium-hover">
+                            <div class="rounded-3 bg-success bg-opacity-10 text-success p-2 d-inline-block mb-3">
+                                <i class="bi bi-robot fs-4"></i>
+                            </div>
+                            <h6 class="font-weight-bold mb-2">3. Strategic Insights</h6>
+                            <p class="text-muted-custom small m-0">Get fully automated executive warnings, sales predictions, and business risks.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="{% url 'datasets:upload' %}" class="btn btn-premium btn-premium-primary btn-lg px-5">
+                    <i class="bi bi-cloud-arrow-up-fill"></i> Upload Dataset to Start
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <!-- DASHBOARD WORKSPACE GRID -->
+        <div class="row mb-4">
+            <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h1 class="h3 mb-1">Executive Dashboard</h1>
+                    <p class="text-muted-custom m-0">Overview metrics, visualization, and advisor details for <strong>{{ active_dataset.name }}</strong>.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'ai_advisor:view_report' %}?refresh=true" class="btn btn-premium btn-premium-secondary" onclick="showLoading('Mistral AI is writing business report...')">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh AI Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4 CORE KPI CARDS -->
+        <div class="row g-4 mb-4">
+            <!-- Total Rows -->
+            <div class="col-md-6 col-xl-3">
+                <div class="card-premium kpi-card shadow-sm card-premium-hover" style="--accent-color: var(--primary);">
+                    <span class="text-muted-custom text-uppercase tracking-wider font-weight-bold" style="font-size: 0.7rem;">Dataset Size (Rows)</span>
+                    <h3 class="my-2 font-weight-extrabold">{{ active_dataset.row_count }}</h3>
+                    <div class="d-flex align-items-center gap-1 text-primary small" style="font-size: 0.75rem;">
+                        <i class="bi bi-table"></i>
+                        <span>Processed data rows</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Total Columns -->
+            <div class="col-md-6 col-xl-3">
+                <div class="card-premium kpi-card shadow-sm card-premium-hover" style="--accent-color: var(--secondary);">
+                    <span class="text-muted-custom text-uppercase tracking-wider font-weight-bold" style="font-size: 0.7rem;">Total Columns</span>
+                    <h3 class="my-2 font-weight-extrabold">{{ active_dataset.column_count }}</h3>
+                    <div class="d-flex align-items-center gap-1 text-secondary small" style="font-size: 0.75rem;">
+                        <i class="bi bi-columns-width"></i>
+                        <span>{{ active_dataset.numeric_columns|length }} numeric, {{ active_dataset.categorical_columns|length }} categorical</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Missing Cells -->
+            <div class="col-md-6 col-xl-3">
+                <div class="card-premium kpi-card shadow-sm card-premium-hover" style="--accent-color: {% if active_dataset.missing_values_count > 0 %}var(--warning){% else %}var(--success){% endif %};">
+                    <span class="text-muted-custom text-uppercase tracking-wider font-weight-bold" style="font-size: 0.7rem;">Missing Values</span>
+                    <h3 class="my-2 font-weight-extrabold {% if active_dataset.missing_values_count > 0 %}text-warning{% endif %}">
+                        {{ active_dataset.missing_values_count }}
+                    </h3>
+                    <div class="d-flex align-items-center gap-1 small" style="font-size: 0.75rem; color: {% if active_dataset.missing_values_count > 0 %}var(--warning){% else %}var(--success){% endif %};">
+                        {% if active_dataset.missing_values_count > 0 %}
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <span>Data cleaning recommended</span>
+                        {% else %}
+                            <i class="bi bi-check-circle"></i>
+                            <span>100% complete cells</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Duplicates -->
+            <div class="col-md-6 col-xl-3">
+                <div class="card-premium kpi-card shadow-sm card-premium-hover" style="--accent-color: {% if active_dataset.duplicate_count > 0 %}var(--danger){% else %}var(--success){% endif %};">
+                    <span class="text-muted-custom text-uppercase tracking-wider font-weight-bold" style="font-size: 0.7rem;">Duplicate Records</span>
+                    <h3 class="my-2 font-weight-extrabold {% if active_dataset.duplicate_count > 0 %}text-danger{% endif %}">
+                        {{ active_dataset.duplicate_count }}
+                    </h3>
+                    <div class="d-flex align-items-center gap-1 small" style="font-size: 0.75rem; color: {% if active_dataset.duplicate_count > 0 %}var(--danger){% else %}var(--success){% endif %};">
+                        {% if active_dataset.duplicate_count > 0 %}
+                            <i class="bi bi-shield-slash"></i>
+                            <span>Redundant rows detected</span>
+                        {% else %}
+                            <i class="bi bi-shield-check"></i>
+                            <span>No duplicates found</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMN METRICS STATS CARD & DYNAMIC SUMMARY -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card-premium shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <h6 class="m-0 font-weight-bold d-flex align-items-center gap-2">
+                            <i class="bi bi-calculator-fill text-accent"></i>
+                            Numeric Fields Statistical summary
+                        </h6>
+                        <!-- stats col selector form -->
+                        {% if numeric_cols %}
+                            <form method="GET" action="{% url 'dashboard:index' %}" class="d-inline-flex align-items-center gap-2">
+                                <label for="statsColSelect" class="small text-muted" style="white-space: nowrap;">Target Column:</label>
+                                <select name="stats_col" id="statsColSelect" class="form-select form-select-sm form-control-premium p-1 px-3" style="font-size: 0.75rem; width: auto;" onchange="this.form.submit()">
+                                    {% for col in numeric_cols %}
+                                        <option value="{{ col }}" {% if stats_col == col %}selected{% endif %}>{{ col }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        {% endif %}
+                    </div>
+
+                    {% if stats_col %}
+                        <div class="row g-3">
+                            <div class="col-md-4 border-end border-light-subtle">
+                                <div class="px-2">
+                                    <span class="text-muted small">Mean (Average)</span>
+                                    <h4 class="m-0 mt-1 font-weight-bold text-primary">{{ stats_mean|floatformat:2 }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4 border-end border-light-subtle">
+                                <div class="px-2">
+                                    <span class="text-muted small">Maximum Value</span>
+                                    <h4 class="m-0 mt-1 font-weight-bold text-success">{{ stats_max|floatformat:2 }}</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="px-2">
+                                    <span class="text-muted small">Minimum Value</span>
+                                    <h4 class="m-0 mt-1 font-weight-bold text-danger">{{ stats_min|floatformat:2 }}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3 text-muted">
+                            No numerical columns detected in this dataset.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- VISUALS AND AI INSIGHTS SPLIT ROW -->
+        <div class="row g-4">
+            <!-- Active Chart Panel -->
+            <div class="col-lg-8">
+                <div class="card-premium h-100 d-flex flex-column shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title m-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-graph-up text-primary"></i>
+                            Interactive Dashboard Visual
+                        </h5>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'analytics:view' %}" class="btn btn-sm btn-premium btn-premium-outline">
+                                <i class="bi bi-pencil-square"></i> Customize Workspace
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-grow-1 d-flex align-items-center justify-content-center" style="min-height: 400px; max-height: 480px;">
+                        {% if chart_json %}
+                            <div id="dashboardPlotlyDiv" class="w-100 h-100"></div>
+                        {% else %}
+                            <div class="text-center text-muted">
+                                <i class="bi bi-exclamation-triangle-fill fs-3 mb-2 d-block"></i>
+                                Unable to render graph. Please verify selected coordinates in Workspace.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Advisor Panel -->
+            <div class="col-lg-4">
+                <div class="card-premium h-100 d-flex flex-column shadow-sm">
+                    <h5 class="card-title mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-robot text-secondary"></i>
+                        AI Advisor Highlights
+                    </h5>
+                    
+                    <div class="flex-grow-1 overflow-auto" style="max-height: 420px;">
+                        {% if not mistral_configured %}
+                            <div class="text-center py-4 bg-warning-subtle rounded-3 p-3 border border-warning-subtle mb-3">
+                                <i class="bi bi-key-fill text-warning fs-1 mb-2 d-block"></i>
+                                <h6>Mistral API Key Required</h6>
+                                <p class="text-muted-custom small mb-3">Enable smart Business Reports by saving your API Key.</p>
+                                <a href="{% url 'settings_app:index' %}#ai" class="btn btn-sm btn-premium btn-premium-secondary">
+                                    Configure API
+                                </a>
+                            </div>
+                        {% elif not ai_report %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-robot text-muted fs-1 mb-2 d-block"></i>
+                                <h6 class="mb-2">No Report Found</h6>
+                                <p class="text-muted-custom small mb-4">Click below to trigger Mistral AI and run a full business audit.</p>
+                                <a href="{% url 'ai_advisor:view_report' %}?refresh=true" class="btn btn-premium btn-premium-primary btn-sm" onclick="showLoading('Mistral AI is compiling reports...')">
+                                    <i class="bi bi-magic"></i> Generate AI Report
+                                </a>
+                            </div>
+                        {% else %}
+                            <!-- Executive summary teaser -->
+                            <div class="mb-3">
+                                <strong class="small text-uppercase tracking-wide text-secondary d-block mb-1">Executive Summary</strong>
+                                <p class="small text-muted-custom m-0 text-truncate-3" style="line-height: 1.5;">
+                                    {{ ai_report.executive_summary }}
+                                </p>
+                            </div>
+                            
+                            <hr class="my-3">
+                            
+                            <!-- Highlights list teaser -->
+                            <div>
+                                <strong class="small text-uppercase tracking-wide text-success d-block mb-2">Actionable Decisions</strong>
+                                <p class="small text-muted-custom m-0 text-truncate-4" style="line-height: 1.5;">
+                                    {{ ai_report.recommendations }}
+                                </p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if ai_report %}
+                        <div class="border-top pt-3 mt-3 text-center">
+                            <a href="{% url 'ai_advisor:view_report' %}" class="btn btn-premium btn-premium-primary w-100 justify-content-center">
+                                View Complete AI Report <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if active_dataset and chart_json %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const plotData = {{ chart_json|safe }};
+        Plotly.newPlot('dashboardPlotlyDiv', plotData.data, plotData.layout, {responsive: true});
+        
+        // Handle client-side PDF export when requested
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('print') === 'true') {
+            showLoading("Generating dashboard PDF capture...");
+            
+            // Hide sidebar, header navigation, and change margins temporarily
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const navbar = document.querySelector('.navbar-premium');
+            const footerBtn = document.querySelector('.border-top.pt-3.mt-3.text-center');
+            
+            if (sidebar) sidebar.style.display = 'none';
+            if (mainContent) mainContent.style.marginLeft = '0';
+            if (navbar) navbar.style.display = 'none';
+            if (footerBtn) footerBtn.style.display = 'none';
+            
+            // Load html2pdf dynamically
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+            script.onload = () => {
+                const opt = {
+                    margin:       0.4,
+                    filename:     'Dashboard_Capture_{{ active_dataset.name }}.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+                };
+                
+                // Allow layout to adapt and render PDF
+                setTimeout(() => {
+                    html2pdf().set(opt).from(mainContent).save().then(() => {
+                        // Restore layout
+                        if (sidebar) sidebar.style.display = 'flex';
+                        if (mainContent) mainContent.style.marginLeft = '';
+                        if (navbar) navbar.style.display = 'flex';
+                        if (footerBtn) footerBtn.style.display = 'block';
+                        hideLoading();
+                        
+                        // Redirect back to export page
+                        window.location.href = "{% url 'export:index' %}";
+                    });
+                }, 1200);
+            };
+            document.head.appendChild(script);
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

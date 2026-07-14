@@ -1,0 +1,517 @@
+/* 
+   AI Business Analytics Copilot Premium Stylesheet
+   Designed with custom CSS variables for light/dark themes, glassmorphism, 
+   smooth transitions, rounded cards, soft shadows, and typography.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary: #1E3A8A;
+    --primary-rgb: 30, 58, 138;
+    --secondary: #7C3AED;
+    --secondary-rgb: 124, 58, 237;
+    --accent: #06B6D4;
+    --success: #22C55E;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    
+    /* Light Theme Colors */
+    --background: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --card-hover-bg: #FFFFFF;
+    --text-main: #0F172A;
+    --text-muted: #64748B;
+    --border-color: #E2E8F0;
+    
+    --sidebar-bg: #0F172A;
+    --sidebar-text: #94A3B8;
+    --sidebar-active-text: #FFFFFF;
+    --sidebar-active-bg: rgba(255, 255, 255, 0.08);
+    --sidebar-hover-bg: rgba(255, 255, 255, 0.04);
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.05), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
+    --shadow-premium: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 10px 10px -5px rgba(15, 23, 42, 0.04);
+    
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(226, 232, 240, 0.8);
+    
+    --transition-speed: 0.3s;
+}
+
+[data-theme="dark"] {
+    /* Dark Theme Colors */
+    --background: #0B0F19;
+    --card-bg: #151F32;
+    --card-hover-bg: #1A263E;
+    --text-main: #F8FAFC;
+    --text-muted: #94A3B8;
+    --border-color: #243048;
+    
+    --sidebar-bg: #0B0F19;
+    --sidebar-text: #64748B;
+    --sidebar-active-text: #38BDF8;
+    --sidebar-active-bg: rgba(56, 189, 248, 0.08);
+    --sidebar-hover-bg: rgba(56, 189, 248, 0.04);
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+    --shadow-premium: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    
+    --glass-bg: rgba(21, 31, 50, 0.8);
+    --glass-border: rgba(36, 48, 72, 0.8);
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--background);
+    color: var(--text-main);
+    overflow-x: hidden;
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* Glassmorphism Navigation */
+.navbar-premium {
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+}
+
+/* Layout Shell */
+.app-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar Styling */
+.sidebar {
+    width: 260px;
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1030;
+    transition: width var(--transition-speed) ease, transform var(--transition-speed) ease;
+}
+
+.sidebar-brand {
+    padding: 1.5rem;
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.025em;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 1rem 0.75rem;
+    margin: 0;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.sidebar-item {
+    margin-bottom: 0.25rem;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.75rem 1rem;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+}
+
+.sidebar-link:hover {
+    background-color: var(--sidebar-hover-bg);
+    color: #FFFFFF;
+}
+
+.sidebar-link.active {
+    background-color: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+    font-weight: 600;
+}
+
+.sidebar-footer {
+    padding: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Main Content Area */
+.main-content {
+    flex-grow: 1;
+    margin-left: 260px;
+    min-width: 0;
+    transition: margin-left var(--transition-speed) ease;
+    padding: 2rem;
+}
+
+/* Collapsed Sidebar State */
+.sidebar-collapsed .sidebar {
+    width: 70px;
+}
+
+.sidebar-collapsed .sidebar-brand span,
+.sidebar-collapsed .sidebar-link span,
+.sidebar-collapsed .sidebar-footer .user-details {
+    display: none;
+}
+
+.sidebar-collapsed .sidebar-brand,
+.sidebar-collapsed .sidebar-link {
+    justify-content: center;
+}
+
+.sidebar-collapsed .main-content {
+    margin-left: 70px;
+}
+
+/* Premium Rounded Cards */
+.card-premium {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-premium-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(124, 92, 237, 0.2);
+    background-color: var(--card-hover-bg);
+}
+
+/* Color Gradients */
+.gradient-primary {
+    background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+}
+.gradient-purple {
+    background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+}
+.gradient-accent {
+    background: linear-gradient(135deg, #06B6D4 0%, #06B6D4 100%);
+}
+.gradient-success {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
+/* Dashboard KPI Card Custom */
+.kpi-card {
+    position: relative;
+    overflow: hidden;
+}
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background-color: var(--accent-color, var(--primary));
+}
+
+/* Typography Enhancements */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-main);
+}
+
+.text-muted-custom {
+    color: var(--text-muted);
+}
+
+/* Buttons */
+.btn-premium {
+    border-radius: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-premium-primary {
+    background-color: var(--primary);
+    color: #FFFFFF;
+    border: 1px solid var(--primary);
+}
+.btn-premium-primary:hover {
+    background-color: #172E70;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+    color: #FFFFFF;
+}
+
+.btn-premium-secondary {
+    background-color: var(--secondary);
+    color: #FFFFFF;
+    border: 1px solid var(--secondary);
+}
+.btn-premium-secondary:hover {
+    background-color: #632CDB;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+    color: #FFFFFF;
+}
+
+.btn-premium-outline {
+    background-color: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+}
+.btn-premium-outline:hover {
+    background-color: var(--border-color);
+    color: var(--text-main);
+    transform: translateY(-1px);
+}
+
+/* Premium Form Styles */
+.form-control-premium {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    border-radius: 0.5rem;
+    padding: 0.625rem 1rem;
+    transition: all 0.2s ease;
+}
+.form-control-premium:focus {
+    background-color: var(--card-bg);
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+    color: var(--text-main);
+    outline: none;
+}
+
+/* Loading Animations */
+.spinner-premium {
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid rgba(124, 58, 237, 0.15);
+    border-radius: 50%;
+    border-top-color: var(--secondary);
+    animation: spin-anim 1s linear infinite;
+}
+
+@keyframes spin-anim {
+    to { transform: rotate(360deg); }
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #FFFFFF;
+    gap: 1rem;
+}
+
+/* Toast Container */
+.toast-container-custom {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.toast-custom {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--accent-color, var(--primary));
+    box-shadow: var(--shadow-lg);
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    min-width: 300px;
+    max-width: 450px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    animation: slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease;
+}
+
+@keyframes slide-in {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Tabs customization */
+.nav-tabs-premium {
+    border-bottom: 2px solid var(--border-color);
+    gap: 1.5rem;
+}
+
+.nav-tabs-premium .nav-link {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 0.75rem 0.25rem 1rem 0.25rem;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.nav-tabs-premium .nav-link:hover {
+    color: var(--text-main);
+    border-bottom-color: var(--border-color);
+}
+
+.nav-tabs-premium .nav-link.active {
+    color: var(--secondary);
+    border-bottom-color: var(--secondary);
+}
+
+/* AI Report View customization */
+.ai-report-section {
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.ai-report-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.ai-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(124, 58, 237, 0.1);
+    color: var(--secondary);
+    font-size: 1.25rem;
+}
+
+/* Table Style */
+.table-premium {
+    color: var(--text-main);
+    vertical-align: middle;
+}
+.table-premium th {
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 2px solid var(--border-color);
+    padding: 1rem 0.75rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.table-premium td {
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 0.75rem;
+    font-size: 0.875rem;
+}
+.table-premium tbody tr:hover {
+    background-color: rgba(124, 58, 237, 0.02);
+}
+
+/* Custom Grid layout for dashboard */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.5rem;
+}
+
+/* Responsiveness overrides */
+@media (max-width: 991.98px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+    .main-content {
+        margin-left: 0 !important;
+        padding: 1.5rem;
+    }
+    .sidebar-open .sidebar {
+        transform: translateX(0);
+    }
+    .sidebar-open .sidebar-overlay {
+        display: block;
+    }
+    .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(15, 23, 42, 0.6);
+        z-index: 1025;
+        display: none;
+    }
+}
+
+/* Theme Toggle Button custom */
+.theme-toggle-btn {
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.theme-toggle-btn:hover {
+    background-color: var(--border-color);
+}

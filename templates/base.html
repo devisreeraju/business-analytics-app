@@ -1,0 +1,287 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ theme_preference|default:'light' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Business Analytics Copilot{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <!-- Custom Style -->
+    <link href="{% static 'css/main.css' %}" rel="stylesheet">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner-premium mb-3"></div>
+        <h5 class="m-0">Analyzing dataset...</h5>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container-custom" id="toastContainer"></div>
+
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="bi bi-cpu-fill text-accent fs-3 animate-pulse"></i>
+                <span>BI Copilot AI</span>
+                <button type="button" class="btn-close btn-close-white ms-auto d-lg-none" id="sidebarClose" aria-label="Close"></button>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="sidebar-item">
+                    <a href="{% url 'dashboard:index' %}" class="sidebar-link {% if request.resolver_match.app_name == 'dashboard' and request.resolver_match.url_name == 'index' %}active{% endif %}">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'datasets:upload' %}" class="sidebar-link {% if request.resolver_match.app_name == 'datasets' %}active{% endif %}">
+                        <i class="bi bi-cloud-arrow-up-fill"></i>
+                        <span>Upload Dataset</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'analytics:view' %}" class="sidebar-link {% if request.resolver_match.app_name == 'analytics' %}active{% endif %}">
+                        <i class="bi bi-bar-chart-line-fill"></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'ai_advisor:view_report' %}" class="sidebar-link {% if request.resolver_match.app_name == 'ai_advisor' %}active{% endif %}">
+                        <i class="bi bi-robot"></i>
+                        <span>AI Business Advisor</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'export:index' %}" class="sidebar-link {% if request.resolver_match.app_name == 'export' %}active{% endif %}">
+                        <i class="bi bi-download"></i>
+                        <span>Export</span>
+                    </a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="{% url 'settings_app:index' %}" class="sidebar-link {% if request.resolver_match.app_name == 'settings_app' %}active{% endif %}">
+                        <i class="bi bi-gear-fill"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Sidebar User Profile Footer -->
+            {% if request.user.is_authenticated %}
+            <div class="sidebar-footer d-flex align-items-center gap-3">
+                {% if request.user.userprofile.profile_photo %}
+                    <img src="{{ request.user.userprofile.profile_photo.url }}" alt="Profile Photo" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; border: 2px solid var(--secondary);">
+                {% else %}
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-gradient-primary text-white font-weight-bold" style="width: 40px; height: 40px; font-weight: 700; font-size: 1.1rem; border: 2px solid var(--secondary);">
+                        {{ request.user.username|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+                <div class="user-details overflow-hidden">
+                    <h6 class="m-0 text-white text-truncate" style="font-size: 0.875rem;">{{ request.user.first_name|default:request.user.username }}</h6>
+                    <span class="text-truncate d-block text-muted" style="font-size: 0.75rem;">{{ request.user.email }}</span>
+                </div>
+                <button type="button" class="btn p-0 border-0 ms-auto text-muted user-details" data-bs-toggle="modal" data-bs-target="#logoutModal" title="Log Out">
+                    <i class="bi bi-box-arrow-right fs-4 text-danger hover-grow"></i>
+                </button>
+            </div>
+            {% endif %}
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main class="main-content">
+            <!-- Top Glassmorphism Navigation -->
+            <nav class="navbar navbar-expand-lg navbar-premium rounded-3 mb-4 py-2 px-3 shadow-sm">
+                <div class="container-fluid p-0">
+                    <!-- Collapse Button for Desktop, Hamburger for Mobile -->
+                    <button class="btn btn-premium btn-premium-outline p-2 d-none d-lg-flex" id="sidebarToggle" type="button" title="Toggle Sidebar">
+                        <i class="bi bi-justify fs-5 m-0"></i>
+                    </button>
+                    <button class="btn btn-premium btn-premium-outline p-2 d-lg-none me-2" id="mobileSidebarToggle" type="button">
+                        <i class="bi bi-justify fs-5 m-0"></i>
+                    </button>
+
+                    <!-- Active Dataset indicator -->
+                    <div class="d-flex align-items-center ms-lg-3 me-auto">
+                        {% if active_dataset %}
+                            <div class="badge bg-success-subtle text-success border border-success-subtle rounded-pill py-2 px-3 d-flex align-items-center gap-2">
+                                <span class="position-relative d-inline-flex">
+                                    <span class="position-absolute bubble-ping bg-success" style="width: 8px; height: 8px; border-radius: 50%; opacity: 0.75;"></span>
+                                    <span class="relative-item bg-success" style="width: 8px; height: 8px; border-radius: 50%;"></span>
+                                </span>
+                                <span style="font-weight: 600; font-size: 0.8rem;">Dataset: {{ active_dataset.name }}</span>
+                            </div>
+                        {% else %}
+                            <div class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill py-2 px-3 d-flex align-items-center gap-2">
+                                <i class="bi bi-exclamation-triangle-fill text-warning"></i>
+                                <span style="font-weight: 600; font-size: 0.8rem;">No Dataset Active</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Right Controls -->
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- Theme Toggle Button -->
+                        <div class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleThemePreference()" title="Toggle Theme">
+                            <i class="bi bi-moon-fill text-primary"></i>
+                        </div>
+
+                        <!-- Notifications Dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-premium btn-premium-outline p-2 position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+                                <i class="bi bi-bell-fill fs-5 m-0"></i>
+                                {% if not mistral_configured or not active_dataset %}
+                                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
+                                        <span class="visually-hidden">New alerts</span>
+                                    </span>
+                                {% endif %}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end card-premium p-2 shadow-lg border-0 mt-2" style="width: 280px;">
+                                <h6 class="px-2 py-1 mb-2 border-bottom pb-2">System Notifications</h6>
+                                {% if not mistral_configured %}
+                                    <li class="mb-2">
+                                        <a class="dropdown-item d-flex gap-2 align-items-start text-wrap p-2 rounded bg-warning-subtle border border-warning-subtle" href="{% url 'settings_app:index' %}">
+                                            <i class="bi bi-exclamation-circle text-warning fs-5"></i>
+                                            <div>
+                                                <span style="font-weight: 600; font-size: 0.8rem; display: block; color: var(--text-main);">API Key Required</span>
+                                                <span style="font-size: 0.75rem; color: var(--text-muted);">Please configure your Mistral API Key in Settings to enable AI recommendations.</span>
+                                            </div>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                {% if not active_dataset %}
+                                    <li>
+                                        <a class="dropdown-item d-flex gap-2 align-items-start text-wrap p-2 rounded bg-info-subtle border border-info-subtle" href="{% url 'datasets:upload' %}">
+                                            <i class="bi bi-cloud-arrow-up text-info fs-5"></i>
+                                            <div>
+                                                <span style="font-weight: 600; font-size: 0.8rem; display: block; color: var(--text-main);">Upload Dataset</span>
+                                                <span style="font-size: 0.75rem; color: var(--text-muted);">Get started by uploading a CSV or Excel business data file.</span>
+                                            </div>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li>
+                                        <div class="dropdown-item d-flex gap-2 align-items-start text-wrap p-2 rounded bg-success-subtle border border-success-subtle">
+                                            <i class="bi bi-check-circle text-success fs-5"></i>
+                                            <div>
+                                                <span style="font-weight: 600; font-size: 0.8rem; display: block; color: var(--text-main);">Dataset Loaded</span>
+                                                <span style="font-size: 0.75rem; color: var(--text-muted);">Dataset "{{ active_dataset.name }}" is ready for visualization and AI generation.</span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                        <!-- User Quick Access -->
+                        <div class="dropdown">
+                            <button class="btn p-0 border-0 dropdown-toggle no-caret" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                {% if request.user.userprofile.profile_photo %}
+                                    <img src="{{ request.user.userprofile.profile_photo.url }}" alt="Profile" class="rounded-circle border" style="width: 38px; height: 38px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-gradient-primary text-white font-weight-bold" style="width: 38px; height: 38px;">
+                                        {{ request.user.username|slice:":1"|upper }}
+                                    </div>
+                                {% endif %}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end card-premium p-2 shadow-lg border-0 mt-2" style="width: 200px;">
+                                <li><a class="dropdown-item rounded p-2" href="{% url 'settings_app:index' %}"><i class="bi bi-person-fill me-2 text-primary"></i>Profile Details</a></li>
+                                <li><a class="dropdown-item rounded p-2" href="{% url 'settings_app:index' %}#account"><i class="bi bi-shield-lock-fill me-2 text-secondary"></i>Change Password</a></li>
+                                <li><a class="dropdown-item rounded p-2" href="{% url 'settings_app:index' %}#ai"><i class="bi bi-key-fill me-2 text-success"></i>AI Configuration</a></li>
+                                <li><hr class="dropdown-divider my-2"></li>
+                                <li><button class="dropdown-item rounded p-2 text-danger" type="button" data-bs-toggle="modal" data-bs-target="#logoutModal"><i class="bi bi-box-arrow-right me-2"></i>Log Out</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Panel Content Block -->
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Premium Logout Confirmation Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-premium shadow-premium p-4 border-0">
+                <div class="modal-header border-0 p-0 mb-3">
+                    <h5 class="modal-title d-flex align-items-center gap-2" id="logoutModalLabel">
+                        <i class="bi bi-box-arrow-right text-danger"></i>
+                        Confirm Logout
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 mb-4">
+                    {% if has_unsaved_changes %}
+                        <p class="m-0 text-muted-custom">
+                            <strong>You have unsaved work.</strong><br>
+                            Would you like to save your current session state and preferences before logging out?
+                        </p>
+                    {% else %}
+                        <p class="m-0 text-muted-custom">Are you sure you want to end your current session and log out?</p>
+                    {% endif %}
+                </div>
+                <div class="modal-footer border-0 p-0 gap-2">
+                    <button type="button" class="btn btn-premium btn-premium-outline" data-bs-dismiss="modal">Cancel</button>
+                    
+                    {% if has_unsaved_changes %}
+                        <!-- Save and Logout -->
+                        <form action="{% url 'accounts:logout' %}?save=true" method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-premium btn-premium-primary" onclick="showLoading('Saving and Logging out...')">
+                                <i class="bi bi-save me-1"></i> Save & Logout
+                            </button>
+                        </form>
+                        <!-- Logout Anyway -->
+                        <form action="{% url 'accounts:logout' %}" method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-premium btn-premium-secondary" onclick="showLoading('Logging out...')">
+                                Logout Anyway
+                            </button>
+                        </form>
+                    {% else %}
+                        <!-- Simple Logout -->
+                        <form action="{% url 'accounts:logout' %}" method="POST" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-premium btn-premium-secondary" onclick="showLoading('Logging out...')">
+                                Logout
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 Bundle JS with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    <!-- Handle Django messages to show as Premium Toasts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            {% if messages %}
+                {% for message in messages %}
+                    showToast("{{ message|escapejs }}", "{{ message.tags }}");
+                {% endfor %}
+            {% endif %}
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

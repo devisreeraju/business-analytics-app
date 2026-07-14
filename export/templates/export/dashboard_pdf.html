@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Dashboard Summary Report - {{ dataset.name }}</title>
+    <style>
+        @page {
+            size: letter;
+            margin: 0.8in;
+            @bottom-right {
+                content: "Page " counter(page);
+                font-family: 'Helvetica', sans-serif;
+                font-size: 8pt;
+                color: #64748B;
+            }
+            @bottom-left {
+                content: "AI Business Analytics Copilot - Dashboard Summary";
+                font-family: 'Helvetica', sans-serif;
+                font-size: 8pt;
+                color: #64748B;
+            }
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #0F172A;
+            font-size: 9.5pt;
+            line-height: 1.6;
+        }
+        .header-table {
+            width: 100%;
+            border-bottom: 2px solid #1E3A8A;
+            padding-bottom: 12px;
+            margin-bottom: 25px;
+        }
+        .header-title {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #1E3A8A;
+            font-family: 'Helvetica-Bold', sans-serif;
+        }
+        .header-subtitle {
+            font-size: 9pt;
+            color: #64748B;
+            text-align: right;
+            vertical-align: bottom;
+        }
+        .kpi-table {
+            width: 100%;
+            margin-bottom: 25px;
+            border-collapse: collapse;
+        }
+        .kpi-box {
+            background-color: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            padding: 12px;
+            text-align: center;
+            width: 25%;
+        }
+        .kpi-val {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #1E3A8A;
+            font-family: 'Helvetica-Bold', sans-serif;
+            margin-top: 5px;
+        }
+        .kpi-lbl {
+            font-size: 8pt;
+            color: #64748B;
+            text-transform: uppercase;
+        }
+        h2 {
+            font-size: 12.5pt;
+            color: #7C3AED;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 4px;
+            margin-top: 22px;
+            margin-bottom: 8px;
+            font-family: 'Helvetica-Bold', sans-serif;
+        }
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+        .stats-table th {
+            background-color: #1E3A8A;
+            color: #FFFFFF;
+            font-family: 'Helvetica-Bold', sans-serif;
+            font-size: 9pt;
+            padding: 8px;
+            text-align: left;
+        }
+        .stats-table td {
+            border-bottom: 1px solid #E2E8F0;
+            padding: 8px;
+            font-size: 9pt;
+        }
+    </style>
+</head>
+<body>
+    <table class="header-table">
+        <tr>
+            <td class="header-title">Dashboard Executive Summary</td>
+            <td class="header-subtitle">Date: {{ export_date }}</td>
+        </tr>
+    </table>
+    
+    <!-- 4 KPIs -->
+    <table class="kpi-table">
+        <tr>
+            <td class="kpi-box">
+                <div class="kpi-lbl">Total Rows</div>
+                <div class="kpi-val">{{ dataset.row_count }}</div>
+            </td>
+            <td class="kpi-box">
+                <div class="kpi-lbl">Total Columns</div>
+                <div class="kpi-val">{{ dataset.column_count }}</div>
+            </td>
+            <td class="kpi-box">
+                <div class="kpi-lbl">Missing Values</div>
+                <div class="kpi-val">{{ dataset.missing_values_count }}</div>
+            </td>
+            <td class="kpi-box">
+                <div class="kpi-lbl">Duplicate Rows</div>
+                <div class="kpi-val">{{ dataset.duplicate_count }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Configuration state -->
+    <h2>Dashboard View Configuration</h2>
+    <table class="kpi-table" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 10px;">
+        <tr>
+            <td style="width: 50%; font-size: 9pt;"><strong>Active Chart Type:</strong> {{ state.chart_type|upper }}</td>
+            <td style="width: 50%; font-size: 9pt;"><strong>Dimensions Selected:</strong> X: {{ state.x_axis }} | Y: {{ state.y_axis }}</td>
+        </tr>
+    </table>
+
+    <!-- Stats Table -->
+    <h2>Numeric Columns Descriptive Statistics</h2>
+    <table class="stats-table">
+        <thead>
+            <tr>
+                <th>Column Name</th>
+                <th>Mean (Average)</th>
+                <th>Maximum</th>
+                <th>Minimum</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for col, stats in stats_summary.items %}
+                <tr>
+                    <td style="font-weight: bold;">{{ col }}</td>
+                    <td>{{ stats.mean|floatformat:2 }}</td>
+                    <td>{{ stats.max|floatformat:2 }}</td>
+                    <td>{{ stats.min|floatformat:2 }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #64748B;">No numerical columns available.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Columns metadata -->
+    <h2>Dataset Structure Overview</h2>
+    <table class="stats-table">
+        <thead>
+            <tr>
+                <th>Column Name</th>
+                <th>Data Classification</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for col, dtype in dataset.column_types.items %}
+                <tr>
+                    <td>{{ col }}</td>
+                    <td>
+                        {% if col in dataset.numeric_columns %}
+                            Numeric ({{ dtype }})
+                        {% else %}
+                            Categorical ({{ dtype }})
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

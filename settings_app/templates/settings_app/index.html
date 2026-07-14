@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings - AI Business Analytics Copilot{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-2">Platform Settings</h1>
+            <p class="text-muted-custom">Configure your user profile, security preferences, and Mistral AI integration details.</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Settings Selector Sidebar -->
+        <div class="col-lg-3">
+            <div class="card-premium shadow-sm">
+                <div class="nav flex-column nav-pills gap-2" id="settingsTabs" role="tablist">
+                    <button class="nav-link text-start p-2.5 px-3 rounded-3 active" id="tab-profile-btn" data-bs-toggle="pill" data-bs-target="#tab-profile" type="button" role="tab">
+                        <i class="bi bi-person-fill me-2"></i> User Profile
+                    </button>
+                    <button class="nav-link text-start p-2.5 px-3 rounded-3" id="tab-account-btn" data-bs-toggle="pill" data-bs-target="#tab-account" type="button" role="tab">
+                        <i class="bi bi-shield-lock-fill me-2"></i> Account Security
+                    </button>
+                    <button class="nav-link text-start p-2.5 px-3 rounded-3" id="tab-ai-btn" data-bs-toggle="pill" data-bs-target="#tab-ai" type="button" role="tab">
+                        <i class="bi bi-key-fill me-2"></i> AI Configuration
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Configurator Body -->
+        <div class="col-lg-9">
+            <form method="POST" enctype="multipart/form-data" action="{% url 'settings_app:index' %}">
+                {% csrf_token %}
+                
+                <div class="tab-content" id="settingsTabContent">
+                    
+                    <!-- USER PROFILE TAB -->
+                    <div class="tab-pane fade show active" id="tab-profile" role="tabpanel">
+                        <div class="card-premium shadow-sm">
+                            <h5 class="card-title mb-4 border-bottom pb-2">
+                                <i class="bi bi-person text-primary"></i> Profile Information
+                            </h5>
+                            
+                            <div class="row align-items-center mb-4">
+                                <div class="col-auto">
+                                    {% if request.user.userprofile.profile_photo %}
+                                        <img src="{{ request.user.userprofile.profile_photo.url }}" alt="Profile Photo" class="rounded-circle border border-2" style="width: 80px; height: 80px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded-circle bg-gradient-primary text-white d-flex align-items-center justify-content-center border border-2" style="width: 80px; height: 80px; font-weight: 700; font-size: 2rem;">
+                                            {{ request.user.username|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col">
+                                    <label class="form-label font-weight-bold">Change Profile Photo</label>
+                                    {{ profile_form.profile_photo }}
+                                    {% if profile_form.profile_photo.errors %}
+                                        <div class="text-danger small mt-1">{{ profile_form.profile_photo.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label font-weight-bold">First Name</label>
+                                    {{ user_form.first_name }}
+                                    {% if user_form.first_name.errors %}
+                                        <div class="text-danger small mt-1">{{ user_form.first_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label font-weight-bold">Last Name</label>
+                                    {{ user_form.last_name }}
+                                    {% if user_form.last_name.errors %}
+                                        <div class="text-danger small mt-1">{{ user_form.last_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label font-weight-bold">Email Address</label>
+                                    {{ user_form.email }}
+                                    {% if user_form.email.errors %}
+                                        <div class="text-danger small mt-1">{{ user_form.email.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label font-weight-bold">Phone Number</label>
+                                    {{ profile_form.phone_number }}
+                                    {% if profile_form.phone_number.errors %}
+                                        <div class="text-danger small mt-1">{{ profile_form.phone_number.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="submit" class="btn btn-premium btn-premium-primary" onclick="showLoading('Saving settings...')">
+                                    <i class="bi bi-save"></i> Save Profile Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACCOUNT SECURITY TAB -->
+                    <div class="tab-pane fade" id="tab-account" role="tabpanel">
+                        <div class="card-premium shadow-sm">
+                            <h5 class="card-title mb-4 border-bottom pb-2">
+                                <i class="bi bi-shield-lock text-secondary"></i> Password & Security
+                            </h5>
+                            <p class="text-muted-custom small mb-4">Click below to change your account access password. You will be redirected to the secure update forms.</p>
+                            
+                            <div class="p-3 bg-light-subtle rounded-3 mb-4 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="bi bi-lock-fill fs-3 text-secondary"></i>
+                                    <div>
+                                        <h6 class="m-0 font-weight-bold">Account Password</h6>
+                                        <span class="text-muted-custom small" style="font-size: 0.75rem;">Last changed: Recent</span>
+                                    </div>
+                                </div>
+                                <a href="{% url 'accounts:change_password' %}" class="btn btn-premium btn-premium-outline btn-sm">
+                                    Change Password
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MISTRAL AI CONFIGURATION TAB -->
+                    <div class="tab-pane fade" id="tab-ai" role="tabpanel">
+                        <div class="card-premium shadow-sm">
+                            <h5 class="card-title mb-4 border-bottom pb-2">
+                                <i class="bi bi-robot text-success"></i> Mistral AI Integration
+                            </h5>
+                            <p class="text-muted-custom small mb-4">
+                                Enter your Mistral API authorization key. This allows the AI Business Advisor to dynamically write report logs.
+                            </p>
+                            
+                            <div class="mb-4">
+                                <label for="id_mistral_api_key" class="form-label font-weight-bold">Mistral API Key</label>
+                                {{ profile_form.mistral_api_key }}
+                                {% if profile_form.mistral_api_key.errors %}
+                                    <div class="text-danger small mt-1">{{ profile_form.mistral_api_key.errors.0 }}</div>
+                                {% endif %}
+                                <span class="form-text text-muted d-block mt-2" style="font-size: 0.75rem;">Your key is encrypted in transport and saved locally on SQLite.</span>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
+                                <button type="button" id="testConnectionBtn" class="btn btn-premium btn-premium-outline">
+                                    <i class="bi bi-cpu"></i> Test API Connection
+                                </button>
+                                <button type="submit" class="btn btn-premium btn-premium-primary" onclick="showLoading('Saving key...')">
+                                    <i class="bi bi-save"></i> Save Configuration
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Handle tab routing via URL anchors (e.g. #ai opens AI config tab)
+    document.addEventListener('DOMContentLoaded', () => {
+        const hash = window.location.hash;
+        if (hash) {
+            let triggerEl = null;
+            if (hash === '#ai') {
+                triggerEl = document.getElementById('tab-ai-btn');
+            } else if (hash === '#account') {
+                triggerEl = document.getElementById('tab-account-btn');
+            } else if (hash === '#profile') {
+                triggerEl = document.getElementById('tab-profile-btn');
+            }
+            if (triggerEl) {
+                const tabTrigger = new bootstrap.Tab(triggerEl);
+                tabTrigger.show();
+            }
+        }
+
+        // Test API Connection
+        const testBtn = document.getElementById('testConnectionBtn');
+        if (testBtn) {
+            testBtn.addEventListener('click', () => {
+                const keyInput = document.getElementById('id_mistral_api_key').value;
+                
+                testBtn.disabled = true;
+                testBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Verifying...';
+                
+                const payload = new FormData();
+                payload.append('api_key', keyInput);
+                payload.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+
+                fetch('{% url "settings_app:test_connection" %}', {
+                    method: 'POST',
+                    body: payload
+                })
+                .then(response => response.json())
+                .then(data => {
+                    testBtn.disabled = false;
+                    testBtn.innerHTML = '<i class="bi bi-cpu"></i> Test API Connection';
+                    
+                    if (data.status === 'success') {
+                        showToast(data.message, 'success');
+                    } else {
+                        showToast(data.message, 'danger');
+                    }
+                })
+                .catch(err => {
+                    testBtn.disabled = false;
+                    testBtn.innerHTML = '<i class="bi bi-cpu"></i> Test API Connection';
+                    showToast("Network connection error. Try again.", 'danger');
+                    console.error("Test API fail:", err);
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

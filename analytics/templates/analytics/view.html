@@ -1,0 +1,574 @@
+{% extends 'base.html' %}
+{% load dataset_tags humanize %}
+
+{% block title %}Analytics Dashboard – AI Business Copilot{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ════════════════════════════════════════════════════
+   POWER BI EXECUTIVE DASHBOARD – ANALYTICS PAGE
+════════════════════════════════════════════════════ */
+
+/* ── Layout shell ── */
+.bi-page { display:flex; flex-direction:column; gap:1.25rem; }
+
+/* ── Dashboard Header ── */
+.bi-header {
+    background: linear-gradient(135deg, #0F1C3F 0%, #1E3A8A 55%, #2d1b6e 100%);
+    border-radius: 1rem;
+    padding: 1.4rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    box-shadow: 0 8px 32px rgba(30,58,138,.35);
+    position: relative;
+    overflow: hidden;
+}
+.bi-header::before {
+    content:'';
+    position:absolute;
+    top:-60px; right:-60px;
+    width:200px; height:200px;
+    border-radius:50%;
+    background:rgba(124,58,237,.18);
+}
+.bi-header::after {
+    content:'';
+    position:absolute;
+    bottom:-40px; left:30%;
+    width:120px; height:120px;
+    border-radius:50%;
+    background:rgba(6,182,212,.12);
+}
+.bi-header .hd-left { position:relative; z-index:1; }
+.bi-header h1 {
+    font-size:1.35rem; font-weight:800;
+    letter-spacing:-.03em; color:#fff; margin:0 0 .15rem;
+}
+.bi-header .hd-meta {
+    display:flex; align-items:center; gap:1.2rem; flex-wrap:wrap; margin-top:.4rem;
+}
+.bi-header .hd-badge {
+    background:rgba(255,255,255,.15);
+    border:1px solid rgba(255,255,255,.25);
+    backdrop-filter:blur(6px);
+    color:#e0e7ff; font-size:.7rem; font-weight:700;
+    padding:.25rem .75rem; border-radius:999px;
+    letter-spacing:.06em; text-transform:uppercase;
+    display:flex; align-items:center; gap:.35rem;
+}
+.bi-header .hd-info {
+    font-size:.72rem; color:rgba(255,255,255,.65);
+    display:flex; align-items:center; gap:.3rem;
+}
+.bi-header .hd-info strong { color:rgba(255,255,255,.9); }
+.bi-header .hd-actions { display:flex; gap:.6rem; position:relative; z-index:1; }
+.bi-header .hd-btn {
+    height:36px; padding:0 1rem;
+    border-radius:.6rem; border:1px solid rgba(255,255,255,.3);
+    background:rgba(255,255,255,.12); backdrop-filter:blur(8px);
+    color:#fff; font-size:.78rem; font-weight:600;
+    cursor:pointer; display:flex; align-items:center; gap:.4rem;
+    transition:all .2s;
+}
+.bi-header .hd-btn:hover { background:rgba(255,255,255,.25); border-color:rgba(255,255,255,.5); }
+.bi-header .hd-btn.accent {
+    background:linear-gradient(135deg,#7C3AED,#06B6D4);
+    border-color:transparent;
+}
+.bi-header .hd-btn.accent:hover { opacity:.9; transform:translateY(-1px); }
+
+/* ── KPI Grid ── */
+.kpi-grid {
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:.9rem;
+}
+@media(max-width:1399px){ .kpi-grid { grid-template-columns:repeat(3,1fr); } }
+@media(max-width:767px) { .kpi-grid { grid-template-columns:repeat(2,1fr); } }
+
+.kpi-tile {
+    border-radius:.9rem;
+    padding:1.1rem 1.25rem;
+    position:relative; overflow:hidden;
+    cursor:default;
+    transition:transform .22s ease, box-shadow .22s ease;
+}
+.kpi-tile:hover { transform:translateY(-4px); box-shadow:0 14px 32px rgba(0,0,0,.15); }
+.kpi-tile::after {
+    content:''; position:absolute;
+    top:-25px; right:-25px;
+    width:90px; height:90px; border-radius:50%;
+    background:rgba(255,255,255,.1);
+}
+.kpi-tile .kt-icon {
+    width:36px; height:36px; border-radius:.55rem;
+    background:rgba(255,255,255,.2);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.1rem; color:#fff; margin-bottom:.7rem;
+}
+.kpi-tile .kt-label {
+    font-size:.65rem; font-weight:700; letter-spacing:.08em;
+    text-transform:uppercase; color:rgba(255,255,255,.75); margin-bottom:.15rem;
+}
+.kpi-tile .kt-value {
+    font-size:1.45rem; font-weight:800; color:#fff;
+    letter-spacing:-.03em; line-height:1.1;
+}
+.kpi-tile .kt-sub {
+    font-size:.67rem; color:rgba(255,255,255,.65);
+    margin-top:.35rem; display:flex; align-items:center; gap:.25rem;
+}
+
+.kpi-tile.kt-1 { background:linear-gradient(135deg,#1E3A8A,#3B82F6); }
+.kpi-tile.kt-2 { background:linear-gradient(135deg,#6d28d9,#7C3AED); }
+.kpi-tile.kt-3 { background:linear-gradient(135deg,#0e7490,#06B6D4); }
+.kpi-tile.kt-4 { background:linear-gradient(135deg,#065f46,#10B981); }
+.kpi-tile.kt-5 { background:linear-gradient(135deg,#92400e,#F59E0B); }
+.kpi-tile.kt-6 { background:linear-gradient(135deg,#991b1b,#EF4444); }
+
+/* ── Chart Rows ── */
+.chart-row { display:grid; gap:.9rem; }
+.chart-row-3  { grid-template-columns:2fr 1fr 1fr; }
+.chart-row-3b { grid-template-columns:1fr 1fr 1fr; }
+.chart-row-2  { grid-template-columns:1fr 1fr; }
+.chart-row-3c { grid-template-columns:1fr 1.2fr 1fr; }
+
+@media(max-width:1199px){
+    .chart-row-3,.chart-row-3b,.chart-row-3c { grid-template-columns:1fr 1fr; }
+}
+@media(max-width:767px){
+    .chart-row-3,.chart-row-3b,.chart-row-3c,.chart-row-2 { grid-template-columns:1fr; }
+}
+
+/* ── Chart Card ── */
+.chart-card {
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+    border-radius:.95rem;
+    overflow:hidden;
+    box-shadow:0 2px 12px rgba(0,0,0,.06);
+    transition:box-shadow .22s ease, transform .22s ease;
+    display:flex; flex-direction:column;
+}
+.chart-card:hover {
+    box-shadow:0 8px 28px rgba(0,0,0,.12);
+    transform:translateY(-2px);
+}
+.chart-card .cc-header {
+    padding:.85rem 1rem .6rem;
+    border-bottom:1px solid var(--border-color);
+    display:flex; align-items:flex-start; justify-content:space-between; gap:.5rem;
+}
+.chart-card .cc-title { font-size:.82rem; font-weight:700; color:var(--text-main); margin:0; }
+.chart-card .cc-sub   { font-size:.67rem; color:var(--text-muted); margin:.1rem 0 0; }
+.chart-card .cc-type-badge {
+    font-size:.6rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    padding:.2rem .55rem; border-radius:999px;
+    background:linear-gradient(135deg,rgba(30,58,138,.12),rgba(124,58,237,.12));
+    color:var(--secondary); flex-shrink:0;
+}
+.chart-card .cc-body {
+    flex:1; min-height:0; padding:.25rem 0 0;
+}
+.chart-card .plotly-container {
+    width:100%; min-height:240px;
+}
+
+/* ── Empty state for missing charts ── */
+.chart-empty {
+    display:flex; flex-direction:column; align-items:center;
+    justify-content:center; min-height:220px; opacity:.55;
+    font-size:.78rem; color:var(--text-muted); gap:.5rem;
+}
+.chart-empty i { font-size:2rem; }
+
+/* ── Page empty state ── */
+.bi-empty {
+    min-height:62vh; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center; padding:3rem;
+}
+.bi-empty .empty-icon {
+    width:80px; height:80px; border-radius:1.3rem;
+    background:linear-gradient(135deg,#1E3A8A,#7C3AED);
+    display:flex; align-items:center; justify-content:center;
+    font-size:2.2rem; color:#fff; margin:0 auto 1.5rem;
+    box-shadow:0 12px 32px rgba(124,58,237,.35);
+}
+
+/* ── Data Quality Bar (header accent) ── */
+.quality-strip {
+    display:flex; gap:.5rem; align-items:center;
+    flex-wrap:wrap; padding:.6rem 1.75rem;
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+    border-radius:.8rem;
+    font-size:.72rem;
+}
+.quality-strip .qs-item {
+    display:flex; align-items:center; gap:.35rem; color:var(--text-muted);
+}
+.quality-strip .qs-val { font-weight:700; color:var(--text-main); }
+.quality-strip .qs-dot {
+    width:8px; height:8px; border-radius:50%; flex-shrink:0;
+}
+
+/* Dark-mode adjustments */
+[data-theme="dark"] .chart-card { box-shadow:0 2px 12px rgba(0,0,0,.3); }
+[data-theme="dark"] .chart-card:hover { box-shadow:0 8px 28px rgba(0,0,0,.4); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bi-page">
+
+{% if not active_dataset %}
+<!-- ══ EMPTY STATE ══════════════════════════════════════════════════════ -->
+<div class="bi-empty">
+    <div class="empty-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+    <h2 class="mb-2 fw-bold">No Dataset Loaded</h2>
+    <p class="text-muted-custom mb-4" style="max-width:440px;">
+        Upload a CSV or Excel file to instantly generate an executive analytics
+        dashboard with KPIs, trends, and smart visualisations.
+    </p>
+    <a href="{% url 'datasets:upload' %}" class="btn btn-premium btn-premium-primary px-4">
+        <i class="bi bi-cloud-arrow-up-fill me-2"></i>Upload Dataset
+    </a>
+</div>
+
+{% elif error_message %}
+<div class="alert alert-danger rounded-4">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error_message }}
+</div>
+
+{% else %}
+
+<!-- ══ DASHBOARD HEADER ══════════════════════════════════════════════════ -->
+<div class="bi-header">
+    <div class="hd-left">
+        <h1><i class="bi bi-bar-chart-line-fill me-2" style="opacity:.8;"></i>Analytics Dashboard</h1>
+        <div class="hd-meta">
+            <span class="hd-badge"><i class="bi bi-database-fill"></i>{{ active_dataset.name }}</span>
+            <span class="hd-info"><i class="bi bi-calendar3"></i>Uploaded <strong>{{ upload_time }}</strong></span>
+            <span class="hd-info"><i class="bi bi-clock-history"></i>Refreshed <strong id="refreshTime">{{ refreshed_time }}</strong></span>
+            <span class="hd-info"><i class="bi bi-table"></i><strong>{{ row_count|intcomma }}</strong> rows × <strong>{{ col_count }}</strong> cols</span>
+        </div>
+    </div>
+    <div class="hd-actions">
+        <button class="hd-btn" onclick="window.location.reload()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+        <a href="{% url 'export:index' %}" class="hd-btn accent">
+            <i class="bi bi-download"></i> Export
+        </a>
+    </div>
+</div>
+
+<!-- ══ KPI TILES ════════════════════════════════════════════════════════ -->
+<div class="kpi-grid">
+    <div class="kpi-tile kt-1">
+        <div class="kt-icon"><i class="bi bi-currency-dollar"></i></div>
+        <div class="kt-label">Total Revenue</div>
+        <div class="kt-value">{{ kpis.revenue|floatformat:0|intcomma }}</div>
+        <div class="kt-sub"><i class="bi bi-graph-up-arrow"></i> From dataset</div>
+    </div>
+    <div class="kpi-tile kt-2">
+        <div class="kt-icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <div class="kt-label">Total Profit</div>
+        <div class="kt-value">{{ kpis.profit|floatformat:0|intcomma }}</div>
+        <div class="kt-sub"><i class="bi bi-arrow-up-right"></i> Net earnings</div>
+    </div>
+    <div class="kpi-tile kt-3">
+        <div class="kt-icon"><i class="bi bi-bag-check-fill"></i></div>
+        <div class="kt-label">Total Sales</div>
+        <div class="kt-value">{{ kpis.sales|floatformat:0|intcomma }}</div>
+        <div class="kt-sub"><i class="bi bi-box-seam"></i> Units / volume</div>
+    </div>
+    <div class="kpi-tile kt-4">
+        <div class="kt-icon"><i class="bi bi-receipt-cutoff"></i></div>
+        <div class="kt-label">Total Orders</div>
+        <div class="kt-value">{{ kpis.orders|intcomma }}</div>
+        <div class="kt-sub"><i class="bi bi-hash"></i> Unique transactions</div>
+    </div>
+    <div class="kpi-tile kt-5">
+        <div class="kt-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="kt-label">Total Customers</div>
+        <div class="kt-value">{{ kpis.customers|intcomma }}</div>
+        <div class="kt-sub"><i class="bi bi-person-check"></i> Distinct entities</div>
+    </div>
+    <div class="kpi-tile kt-6">
+        <div class="kt-icon"><i class="bi bi-calculator-fill"></i></div>
+        <div class="kt-label">Avg Order Value</div>
+        <div class="kt-value">{{ kpis.aov|floatformat:1 }}</div>
+        <div class="kt-sub"><i class="bi bi-divide"></i> Revenue ÷ Orders</div>
+    </div>
+</div>
+
+<!-- ══ ROW 2 : Bar │ Pie │ H-Bar ══════════════════════════════════════ -->
+<div class="chart-row chart-row-3">
+
+    <!-- Sales by Category -->
+    <div class="chart-card">
+        <div class="cc-header">
+            <div>
+                <p class="cc-title">{% if charts.bar_category %}{{ charts.bar_category.title }}{% else %}Category Revenue{% endif %}</p>
+                <p class="cc-sub">{% if charts.bar_category %}{{ charts.bar_category.subtitle }}{% else %}Auto-generated{% endif %}</p>
+            </div>
+            <span class="cc-type-badge">Bar</span>
+        </div>
+        <div class="cc-body">
+            {% if charts.bar_category and charts.bar_category.json %}
+                <div class="plotly-container" id="chart-bar-category"></div>
+            {% else %}
+                <div class="chart-empty"><i class="bi bi-bar-chart-fill"></i><span>No suitable data available for this visualization.</span></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sales by Region Pie -->
+    <div class="chart-card">
+        <div class="cc-header">
+            <div>
+                <p class="cc-title">{% if charts.pie_region %}{{ charts.pie_region.title }}{% else %}Regional Share{% endif %}</p>
+                <p class="cc-sub">{% if charts.pie_region %}{{ charts.pie_region.subtitle }}{% else %}Auto-generated{% endif %}</p>
+            </div>
+            <span class="cc-type-badge">Pie</span>
+        </div>
+        <div class="cc-body">
+            {% if charts.pie_region and charts.pie_region.json %}
+                <div class="plotly-container" id="chart-pie-region"></div>
+            {% else %}
+                <div class="chart-empty"><i class="bi bi-pie-chart-fill"></i><span>No suitable data available for this visualization.</span></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Profit H-Bar -->
+    <div class="chart-card">
+        <div class="cc-header">
+            <div>
+                <p class="cc-title">{% if charts.hbar_profit %}{{ charts.hbar_profit.title }}{% else %}Profit by Category{% endif %}</p>
+                <p class="cc-sub">{% if charts.hbar_profit %}{{ charts.hbar_profit.subtitle }}{% else %}Ranked{% endif %}</p>
+            </div>
+            <span class="cc-type-badge">H-Bar</span>
+        </div>
+        <div class="cc-body">
+            {% if charts.hbar_profit and charts.hbar_profit.json %}
+                <div class="plotly-container" id="chart-hbar-profit"></div>
+            {% else %}
+                <div class="chart-empty"><i class="bi bi-bar-chart-steps"></i><span>No suitable data available for this visualization.</span></div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- ══ ROW 3 : Line │ Bar (Top 10) │ Donut ════════════════════════════ -->
+<div class="chart-row chart-row-3b">
+
+    <!-- Monthly Trend -->
+    <div class="chart-card">
+        <div class="cc-header">
+            <div>
+                <p class="cc-title">{% if charts.line_trend %}{{ charts.line_trend.title }}{% else %}Revenue Trend{% endif %}</p>
+                <p class="cc-sub">{% if charts.line_trend %}{{ charts.line_trend.subtitle }}{% else %}Time-series{% endif %}</p>
+            </div>
+            <span class="cc-type-badge">Line</span>
+        </div>
+        <div class="cc-body">
+            {% if charts.line_trend and charts.line_trend.json %}
+                <div class="plotly-container" id="chart-line-trend"></div>
+            {% else %}
+                <div class="chart-empty"><i class="bi bi-graph-up"></i><span>No suitable data available for this visualization.</span></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Top Customers / Entities -->
+    <div class="chart-card">
+        <div class="cc-header">
+            <div>
+                <p class="cc-title">{% if charts.bar_top_cust %}{{ charts.bar_top_cust.title }}{% else %}Top Performers{% endif %}</p>
+                <p class="cc-sub">{% if charts.bar_top_cust %}{{ charts.bar_top_cust.subtitle }}{% else %}Ranked by value{% endif %}</p>
+            </div>
+            <span class="cc-type-badge">Bar</span>
+        </div>
+        <div class="cc-body">
+            {% if charts.bar_top_cust and charts.bar_top_cust.json %}
+                <div class="plotly-container" id="chart-bar-top-cust"></div>
+            {% else %}
+                <div class="chart-empty"><i class="bi bi-trophy-fill"></i><span>No suitable data available for this visualization.</span></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Donut Distribution -->
+    <div class="chart-card">
+        <div class="cc-header">
+            <div>
+                <p class="cc-title">{% if charts.donut_dist %}{{ charts.donut_dist.title }}{% else %}Distribution{% endif %}</p>
+                <p class="cc-sub">{% if charts.donut_dist %}{{ charts.donut_dist.subtitle }}{% else %}Record breakdown{% endif %}</p>
+            </div>
+            <span class="cc-type-badge">Donut</span>
+        </div>
+        <div class="cc-body">
+            {% if charts.donut_dist and charts.donut_dist.json %}
+                <div class="plotly-container" id="chart-donut-dist"></div>
+            {% else %}
+                <div class="chart-empty"><i class="bi bi-pie-chart"></i><span>No suitable data available for this visualization.</span></div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- ══ ROW 4 : Treemap │ Scatter │ Area ═══════════════════════════════ -->
+<div class="chart-row chart-row-3c">
+
+    <!-- Treemap -->
+    <div class="chart-card">
+        <div class="cc-header">
+            <div>
+                <p class="cc-title">{% if charts.treemap %}{{ charts.treemap.title }}{% else %}Revenue Treemap{% endif %}</p>
+                <p class="cc-sub">{% if charts.treemap %}{{ charts.treemap.subtitle }}{% else %}Proportional blocks{% endif %}</p>
+            </div>
+            <span class="cc-type-badge">Treemap</span>
+        </div>
+        <div class="cc-body">
+            {% if charts.treemap and charts.treemap.json %}
+                <div class="plotly-container" id="chart-treemap"></div>
+            {% else %}
+                <div class="chart-empty"><i class="bi bi-grid-3x3-gap-fill"></i><span>No suitable data available for this visualization.</span></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Scatter -->
+    <div class="chart-card">
+        <div class="cc-header">
+            <div>
+                <p class="cc-title">{% if charts.scatter %}{{ charts.scatter.title }}{% else %}Correlation{% endif %}</p>
+                <p class="cc-sub">{% if charts.scatter %}{{ charts.scatter.subtitle }}{% else %}Numeric relationship{% endif %}</p>
+            </div>
+            <span class="cc-type-badge">Scatter</span>
+        </div>
+        <div class="cc-body">
+            {% if charts.scatter and charts.scatter.json %}
+                <div class="plotly-container" id="chart-scatter"></div>
+            {% else %}
+                <div class="chart-empty"><i class="bi bi-diagram-3-fill"></i><span>No suitable data available for this visualization.</span></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Area / Region Performance -->
+    <div class="chart-card">
+        <div class="cc-header">
+            <div>
+                <p class="cc-title">{% if charts.area_region %}{{ charts.area_region.title }}{% else %}Region Performance{% endif %}</p>
+                <p class="cc-sub">{% if charts.area_region %}{{ charts.area_region.subtitle }}{% else %}Geographic split{% endif %}</p>
+            </div>
+            <span class="cc-type-badge">Bar</span>
+        </div>
+        <div class="cc-body">
+            {% if charts.area_region and charts.area_region.json %}
+                <div class="plotly-container" id="chart-area-region"></div>
+            {% else %}
+                <div class="chart-empty"><i class="bi bi-globe-americas"></i><span>No suitable data available for this visualization.</span></div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+{% endif %}{# close {% else %} / main if block #}
+
+{% if active_dataset and charts %}
+<!-- Raw JSON data blocks inside script containers – safe for parsing in JS -->
+{% if charts.bar_category and charts.bar_category.json %}<script id="d-bar-category" type="application/json">{{ charts.bar_category.json|safe }}</script>{% endif %}
+{% if charts.pie_region and charts.pie_region.json %}<script id="d-pie-region" type="application/json">{{ charts.pie_region.json|safe }}</script>{% endif %}
+{% if charts.hbar_profit and charts.hbar_profit.json %}<script id="d-hbar-profit" type="application/json">{{ charts.hbar_profit.json|safe }}</script>{% endif %}
+{% if charts.line_trend and charts.line_trend.json %}<script id="d-line-trend" type="application/json">{{ charts.line_trend.json|safe }}</script>{% endif %}
+{% if charts.bar_top_cust and charts.bar_top_cust.json %}<script id="d-bar-top-cust" type="application/json">{{ charts.bar_top_cust.json|safe }}</script>{% endif %}
+{% if charts.donut_dist and charts.donut_dist.json %}<script id="d-donut-dist" type="application/json">{{ charts.donut_dist.json|safe }}</script>{% endif %}
+{% if charts.treemap and charts.treemap.json %}<script id="d-treemap" type="application/json">{{ charts.treemap.json|safe }}</script>{% endif %}
+{% if charts.scatter and charts.scatter.json %}<script id="d-scatter" type="application/json">{{ charts.scatter.json|safe }}</script>{% endif %}
+{% if charts.area_region and charts.area_region.json %}<script id="d-area-region" type="application/json">{{ charts.area_region.json|safe }}</script>{% endif %}
+{% endif %}
+
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+{% if active_dataset and charts %}
+<script>
+/* Power BI Analytics Dashboard – Plotly Renderer */
+var PLOTLY_CONFIG = {
+    responsive: true,
+    displayModeBar: true,
+    displaylogo: false,
+    modeBarButtonsToRemove: ['sendDataToCloud','toImage','select2d','lasso2d'],
+    toImageButtonOptions: { format: 'png', scale: 2 }
+};
+
+function renderChart(divId, jsonStr) {
+    if (!jsonStr) return;
+    try {
+        var el = document.getElementById(divId);
+        if (!el) return;
+        var fig = JSON.parse(jsonStr);
+        fig.layout.autosize = true;
+        fig.layout.height   = 270;
+        if (!fig.layout.margin) { fig.layout.margin = { l:30, r:15, t:15, b:35 }; }
+        Plotly.newPlot(el, fig.data, fig.layout, PLOTLY_CONFIG);
+    } catch(e) {
+        console.warn('Chart render error for', divId, e);
+    }
+}
+
+function getJson(scriptId) {
+    var el = document.getElementById(scriptId);
+    return el ? el.textContent : null;
+}
+
+var CHART_MAP = [
+    ['chart-bar-category',  'd-bar-category'],
+    ['chart-pie-region',    'd-pie-region'],
+    ['chart-hbar-profit',   'd-hbar-profit'],
+    ['chart-line-trend',    'd-line-trend'],
+    ['chart-bar-top-cust',  'd-bar-top-cust'],
+    ['chart-donut-dist',    'd-donut-dist'],
+    ['chart-treemap',       'd-treemap'],
+    ['chart-scatter',       'd-scatter'],
+    ['chart-area-region',   'd-area-region']
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+    CHART_MAP.forEach(function(pair, idx) {
+        var divId    = pair[0];
+        var scriptId = pair[1];
+        setTimeout(function() {
+            renderChart(divId, getJson(scriptId));
+        }, idx * 130);
+    });
+    var rtEl = document.getElementById('refreshTime');
+    if (rtEl) { rtEl.textContent = new Date().toLocaleTimeString(); }
+});
+
+var _resizeTimer;
+window.addEventListener('resize', function() {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(function() {
+        CHART_MAP.forEach(function(pair) {
+            var el = document.getElementById(pair[0]);
+            if (el && el.data) { Plotly.relayout(el, { autosize: true }); }
+        });
+    }, 300);
+});
+</script>
+{% endif %}
+{% endblock %}
+

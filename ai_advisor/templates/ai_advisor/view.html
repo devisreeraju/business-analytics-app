@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Business Advisor - AI Business Analytics Copilot{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1 class="h3 mb-1">AI Business Advisor</h1>
+                <p class="text-muted-custom m-0">Strategic recommendations, data quality diagnostics, and forecasts generated automatically.</p>
+            </div>
+            {% if active_dataset and not api_not_configured %}
+                <div class="d-inline-flex gap-2">
+                    <a href="{% url 'ai_advisor:view_report' %}?refresh=true" class="btn btn-premium btn-premium-secondary" onclick="showLoading('Mistral AI is recalculating business report...')">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh AI Analysis
+                    </a>
+                    {% if report %}
+                        <a href="{% url 'ai_advisor:download_pdf' %}" class="btn btn-premium btn-premium-primary">
+                            <i class="bi bi-file-earmark-pdf-fill"></i> Download PDF Report
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Error/Warning Messages -->
+    {% if error_message %}
+        <div class="alert alert-danger d-flex align-items-center gap-3 mb-4 rounded-3 p-3 shadow-sm">
+            <i class="bi bi-exclamation-triangle-fill fs-4 text-danger"></i>
+            <div>
+                <strong style="display: block;">Mistral AI Execution Failed</strong>
+                <span class="small text-muted" style="color: rgba(15,23,42,0.8);">{{ error_message }}</span>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if not active_dataset %}
+        <!-- No Dataset Active -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card-premium py-5 text-center shadow-sm">
+                    <i class="bi bi-robot text-muted display-4 mb-3 d-block"></i>
+                    <h4 class="mb-2">No Active Dataset Loaded</h4>
+                    <p class="text-muted-custom mb-4 max-w-500 mx-auto">
+                        We need an active dataset to conduct AI business analysis. Please upload a file to get started.
+                    </p>
+                    <a href="{% url 'datasets:upload' %}" class="btn btn-premium btn-premium-primary">
+                        <i class="bi bi-cloud-arrow-up-fill"></i> Upload Dataset
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% elif api_not_configured %}
+        <!-- API Not Configured -->
+        <div class="row">
+            <div class="col-lg-6 mx-auto">
+                <div class="card-premium py-5 text-center shadow-sm">
+                    <i class="bi bi-key-fill text-warning display-4 mb-3 d-block"></i>
+                    <h4 class="mb-2">Mistral API Key Required</h4>
+                    <p class="text-muted-custom mb-4 max-w-400 mx-auto">
+                        Your AI Business Advisor uses the Mistral AI API to process statistical metrics and compile reports. 
+                        Please enter and verify your API Key in Settings to get started.
+                    </p>
+                    <a href="{% url 'settings_app:index' %}#ai" class="btn btn-premium btn-premium-secondary px-4">
+                        Configure Settings <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- AI Advisor Main Layout -->
+        <div class="row g-4">
+            <!-- Left panel: quick summary & table of contents -->
+            <div class="col-xl-3 col-lg-4">
+                <div class="card-premium shadow-sm">
+                    <h6 class="text-uppercase tracking-wider font-weight-bold mb-3 text-muted-custom" style="font-size: 0.75rem;">Analysis Outline</h6>
+                    
+                    <div class="list-group list-group-flush d-flex flex-column gap-2" id="reportTabs" role="tablist">
+                        <button class="list-group-item list-group-item-action border-0 rounded-3 text-start p-2 px-3 font-weight-semibold active" id="tab-summary-btn" data-bs-toggle="tab" data-bs-target="#tab-summary" type="button" role="tab">
+                            <i class="bi bi-file-earmark-text-fill me-2 text-primary"></i> Executive Summary
+                        </button>
+                        <button class="list-group-item list-group-item-action border-0 rounded-3 text-start p-2 px-3 font-weight-semibold" id="tab-highlights-btn" data-bs-toggle="tab" data-bs-target="#tab-highlights" type="button" role="tab">
+                            <i class="bi bi-patch-check-fill me-2 text-secondary"></i> Business Highlights
+                        </button>
+                        <button class="list-group-item list-group-item-action border-0 rounded-3 text-start p-2 px-3 font-weight-semibold" id="tab-risks-btn" data-bs-toggle="tab" data-bs-target="#tab-risks" type="button" role="tab">
+                            <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i> Risks & Warnings
+                        </button>
+                        <button class="list-group-item list-group-item-action border-0 rounded-3 text-start p-2 px-3 font-weight-semibold" id="tab-opportunities-btn" data-bs-toggle="tab" data-bs-target="#tab-opportunities" type="button" role="tab">
+                            <i class="bi bi-lightbulb-fill me-2 text-warning"></i> Opportunities
+                        </button>
+                        <button class="list-group-item list-group-item-action border-0 rounded-3 text-start p-2 px-3 font-weight-semibold" id="tab-recommendations-btn" data-bs-toggle="tab" data-bs-target="#tab-recommendations" type="button" role="tab">
+                            <i class="bi bi-briefcase-fill me-2 text-success"></i> Recommendations
+                        </button>
+                        <button class="list-group-item list-group-item-action border-0 rounded-3 text-start p-2 px-3 font-weight-semibold" id="tab-conclusion-btn" data-bs-toggle="tab" data-bs-target="#tab-conclusion" type="button" role="tab">
+                            <i class="bi bi-flag-fill me-2 text-info"></i> Final Conclusion
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right panel: content tabs -->
+            <div class="col-xl-9 col-lg-8">
+                <div class="card-premium shadow-sm h-100 p-4">
+                    {% if not report %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-robot text-muted display-3 mb-3 d-block"></i>
+                            <h4 class="mb-2">Run AI Business Analysis</h4>
+                            <p class="text-muted-custom mb-4 max-w-500 mx-auto">
+                                The AI Advisor has not compiled a report for "{{ active_dataset.name }}" yet. Click below to trigger the Mistral pipeline.
+                            </p>
+                            <a href="{% url 'ai_advisor:view_report' %}?refresh=true" class="btn btn-premium btn-premium-primary" onclick="showLoading('Mistral AI is compiling report...')">
+                                <i class="bi bi-magic"></i> Generate Analysis Report
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="tab-content" id="reportTabContent">
+                            
+                            <!-- Executive Summary -->
+                            <div class="tab-pane fade show active" id="tab-summary" role="tabpanel">
+                                <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                                    <div class="ai-icon-box" style="background-color: rgba(30, 58, 138, 0.1); color: var(--primary);">
+                                        <i class="bi bi-file-earmark-text-fill"></i>
+                                    </div>
+                                    <h4 class="m-0">Executive Summary</h4>
+                                </div>
+                                <div style="line-height: 1.7; font-size: 0.95rem; color: var(--text-main); white-space: pre-line;">
+                                    {{ report.executive_summary }}
+                                </div>
+                            </div>
+                            
+                            <!-- Business Highlights -->
+                            <div class="tab-pane fade" id="tab-highlights" role="tabpanel">
+                                <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                                    <div class="ai-icon-box" style="background-color: rgba(124, 58, 237, 0.1); color: var(--secondary);">
+                                        <i class="bi bi-patch-check-fill"></i>
+                                    </div>
+                                    <h4 class="m-0">Business Highlights</h4>
+                                </div>
+                                <div style="line-height: 1.7; font-size: 0.95rem; color: var(--text-main); white-space: pre-line;">
+                                    {{ report.business_highlights }}
+                                </div>
+                            </div>
+                            
+                            <!-- Risks -->
+                            <div class="tab-pane fade" id="tab-risks" role="tabpanel">
+                                <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                                    <div class="ai-icon-box" style="background-color: rgba(239, 68, 68, 0.1); color: var(--danger);">
+                                        <i class="bi bi-exclamation-triangle-fill"></i>
+                                    </div>
+                                    <h4 class="m-0">Risks & Warnings</h4>
+                                </div>
+                                <div style="line-height: 1.7; font-size: 0.95rem; color: var(--text-main); white-space: pre-line;">
+                                    {{ report.risks }}
+                                </div>
+                            </div>
+                            
+                            <!-- Opportunities -->
+                            <div class="tab-pane fade" id="tab-opportunities" role="tabpanel">
+                                <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                                    <div class="ai-icon-box" style="background-color: rgba(245, 158, 11, 0.1); color: var(--warning);">
+                                        <i class="bi bi-lightbulb-fill"></i>
+                                    </div>
+                                    <h4 class="m-0">Opportunities</h4>
+                                </div>
+                                <div style="line-height: 1.7; font-size: 0.95rem; color: var(--text-main); white-space: pre-line;">
+                                    {{ report.opportunities }}
+                                </div>
+                            </div>
+                            
+                            <!-- Recommendations -->
+                            <div class="tab-pane fade" id="tab-recommendations" role="tabpanel">
+                                <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                                    <div class="ai-icon-box" style="background-color: rgba(34, 197, 94, 0.1); color: var(--success);">
+                                        <i class="bi bi-briefcase-fill"></i>
+                                    </div>
+                                    <h4 class="m-0">Recommendations</h4>
+                                </div>
+                                <div style="line-height: 1.7; font-size: 0.95rem; color: var(--text-main); white-space: pre-line;">
+                                    {{ report.recommendations }}
+                                </div>
+                            </div>
+                            
+                            <!-- Conclusion -->
+                            <div class="tab-pane fade" id="tab-conclusion" role="tabpanel">
+                                <div class="d-flex align-items-center gap-3 mb-3 pb-2 border-bottom">
+                                    <div class="ai-icon-box" style="background-color: rgba(6, 182, 212, 0.1); color: var(--accent);">
+                                        <i class="bi bi-flag-fill"></i>
+                                    </div>
+                                    <h4 class="m-0">Final Conclusion</h4>
+                                </div>
+                                <div style="line-height: 1.7; font-size: 0.95rem; color: var(--text-main); white-space: pre-line;">
+                                    {{ report.conclusion }}
+                                </div>
+                            </div>
+
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
